@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>No Filter, No Favours</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,400..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<style>
+/* Gas Noir tokens: tools/design-system/tokens.json + sample-deck-2026-11-19/deck.css */
+:root{
+  --ink:#121418; --ink-2:#191C21; --ink-3:#20242A; --line:#2B313A;
+  --brand-ink:#28282B; --paper:#FAF9F6; --paper-2:#F1EFE9; --paper-3:#E2DFD6; --paper-line:#D9D5CA;
+  --steel:#4682B4; --steel-lt:#8FB6D8; --steel-600:#3A6E99; --steel-dk:#2E567A;
+  --text:#E7EBF0; --muted:#A6AEBA; --faint:#7F8FA8; --muted-lt:#5C6675;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --sans:'Montserrat',Helvetica,Arial,sans-serif;
+  --bg:var(--ink);
+  color-scheme:dark;
+}
+/* Pages carry fixed themes by design (dark spikes, light quiet pages), so both schemes keep the same palette */
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:var(--ink); } }
+:root[data-theme="dark"]{ --bg:var(--ink); }
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+
+/* ── deck shell ─────────────────────────────── */
+.deck{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+.slot{height:100%;display:grid;place-items:center;scroll-snap-align:start;background:var(--ink)}
+.page{
+  --u:1cqw;
+  width:min(100%,calc(var(--slot-h,100vh)*1.7778));aspect-ratio:16/9;container-type:inline-size;
+  position:relative;overflow:hidden;isolation:isolate;
+  --pad:6.6cqw;
+  --fs-h1:7.6cqw; --fs-h2:3.5cqw; --fs-lede:1.45cqw; --fs-body:1.12cqw; --fs-small:.92cqw; --fs-mono:.8cqw;
+}
+.dark{background:var(--ink);color:var(--text)}
+.light{background:var(--paper);color:var(--brand-ink)}
+
+/* grain + glow background */
+.bg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+
+/* ── system elements ───────────────────────── */
+.badge{display:flex;align-items:center;gap:calc(var(--u)*1)}
+.badge .num{font-family:var(--mono);font-size:var(--fs-mono);font-weight:600;line-height:1;padding:calc(var(--u)*.5) calc(var(--u)*.75);border-radius:999px;background:var(--steel-600);color:var(--paper)}
+.badge .lbl{font-family:var(--mono);font-size:var(--fs-mono);font-weight:600;letter-spacing:.2em;color:var(--steel-lt);text-transform:uppercase}
+.light .badge .lbl{color:var(--steel-dk)}
+.accent{color:var(--steel-lt)}
+.light .accent{color:var(--steel)}
+h1,h2{font-weight:800;letter-spacing:-.035em;line-height:.95}
+h2{font-size:var(--fs-h2)}
+.rule{width:calc(var(--u)*3.2);height:calc(var(--u)*.22);background:var(--steel);margin-top:calc(var(--u)*.9)}
+p{font-size:var(--fs-body);line-height:1.5}
+.k{font-family:var(--mono);font-size:var(--fs-mono);font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel-lt)}
+.light .k{color:var(--steel-dk)}
+.run{position:absolute;left:var(--pad);right:var(--pad);bottom:calc(var(--u)*2.4);display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:var(--fs-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--faint);z-index:2}
+.light .run{color:var(--muted-lt)}
+.run b{color:var(--steel-lt);font-weight:600}
+.light .run b{color:var(--steel)}
+.cap{position:absolute;font-family:var(--mono);font-size:calc(var(--u)*.62);letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(250,249,246,.78);background:rgba(18,20,24,.55);padding:calc(var(--u)*.3) calc(var(--u)*.55);border-radius:2px;backdrop-filter:blur(6px)}
+
+/* scroll reveal */
+.rise{opacity:0;transform:translateY(calc(var(--u)*1.4));transition:opacity .7s ease,transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--i,0)*90ms)}
+.page.in .rise{opacity:1;transform:none}
+
+/* ── nav chrome ────────────────────────────── */
+.rail{position:fixed;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:20}
+.rail button{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;
+  font-family:var(--mono);font-size:10px;font-weight:600;color:var(--faint);background:rgba(18,20,24,.55);border:1px solid rgba(143,182,216,.25);backdrop-filter:blur(8px);transition:all .25s}
+.rail button[aria-current="true"]{background:var(--steel);color:var(--paper);border-color:var(--steel)}
+.rail button:focus-visible,.fs:focus-visible,.switch button:focus-visible,.blk:focus-visible{outline:2px solid var(--steel-lt);outline-offset:3px}
+.fs{position:fixed;top:16px;right:18px;z-index:20;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.16em;
+  padding:9px 14px;border-radius:999px;color:var(--paper);background:rgba(18,20,24,.6);border:1px solid rgba(143,182,216,.3);backdrop-filter:blur(8px)}
+.fs:hover{background:var(--steel)}
+
+/* ═══ PAGE 1 · COVER ═════════════════════════ */
+#p1 .left{position:absolute;left:var(--pad);top:calc(var(--u)*5.2);width:50%;z-index:2}
+#p1 h1{font-size:var(--fs-h1);margin-top:calc(var(--u)*2.4);text-transform:uppercase;letter-spacing:-.045em;line-height:.9}
+#p1 h1 .w{display:inline-block;opacity:0;transform:translateY(40%) skewY(4deg);filter:blur(10px)}
+#p1.in h1 .w{animation:kin .95s cubic-bezier(.2,.75,.15,1) forwards;animation-delay:calc(var(--d)*120ms + 150ms)}
+#p1 h1 .thin{font-weight:300}
+@keyframes kin{to{opacity:1;transform:none;filter:blur(0)}}
+#p1 .host{display:flex;align-items:center;gap:calc(var(--u)*.9);margin-top:calc(var(--u)*1.8);
+  font-size:calc(var(--u)*.95);font-weight:600;letter-spacing:.2em;text-transform:uppercase}
+#p1 .host i{display:block;width:calc(var(--u)*3);height:calc(var(--u)*.2);background:var(--steel)}
+#p1 .lede{font-size:var(--fs-lede);font-weight:500;line-height:1.4;margin-top:calc(var(--u)*1.6);max-width:92%;color:#D9DEE5}
+#p1 .mission{position:absolute;left:var(--pad);bottom:calc(var(--u)*6.2);width:46%;z-index:2;
+  border-top:1px solid var(--line);padding-top:calc(var(--u)*1.2)}
+#p1 .mission q{quotes:none;display:block;font-size:calc(var(--u)*1.75);font-weight:800;letter-spacing:-.015em;line-height:1.2}
+#p1 .mission span{display:block;margin-top:calc(var(--u)*.6);font-size:var(--fs-small);font-style:italic;font-weight:500;color:var(--steel-lt)}
+#p1 .stage{position:absolute;right:0;top:0;width:52%;height:100%;z-index:1}
+#p1 .stage::before{content:"";position:absolute;inset:8% 4% 4% 0;background:radial-gradient(closest-side,rgba(70,130,180,.34),rgba(70,130,180,.07) 60%,transparent 75%);z-index:-1}
+#chair{width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%);mask-image:linear-gradient(90deg,transparent,#000 14%)}
+#chair:active{cursor:grabbing}
+.chair-still{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none}
+.no-gl #chair{display:none}
+.no-gl .chair-still{display:block}
+#p1 .hint{position:absolute;left:50%;bottom:calc(var(--u)*1.9);transform:translateX(-50%);white-space:nowrap;
+  font-family:var(--mono);font-size:var(--fs-mono);letter-spacing:.22em;color:var(--steel-lt);
+  padding:calc(var(--u)*.45) calc(var(--u)*.9);border:1px solid rgba(143,182,216,.28);border-radius:999px;background:rgba(18,20,24,.4)}
+#p1 .hint .lvl{color:var(--paper);margin-left:.6em}
+.no-gl #p1 .hint{display:none}
+
+/* ═══ PAGE 2 · THE SHOW ══════════════════════ */
+#p2 .hero{position:absolute;left:0;right:0;top:0;height:40%;overflow:hidden;
+  background:radial-gradient(120% 140% at 30% 40%,#2E567A,#121418 70%)}
+#p2 .hero img{width:100%;height:100%;object-fit:cover;object-position:center 55%;display:block;transform:scale(1.06);transition:transform 6s ease-out}
+#p2.in .hero img{transform:scale(1)}
+#p2 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,20,24,.45) 0%,rgba(18,20,24,0) 40%,rgba(250,249,246,0) 75%,rgba(250,249,246,.9) 100%)}
+#p2 .hero .badge{position:absolute;left:var(--pad);top:calc(var(--u)*3.2);z-index:2}
+#p2 .hero .badge .lbl{color:var(--paper)}
+#p2 .hero .cap{right:var(--pad);top:calc(var(--u)*3.2);z-index:2}
+#p2 .body{position:absolute;left:var(--pad);right:var(--pad);top:43%;display:grid;grid-template-columns:1.25fr 1fr;gap:calc(var(--u)*5.5)}
+#p2 .main p{margin-top:calc(var(--u)*1.1);color:#3A3D44;max-width:96%}
+#p2 .main p:first-of-type{margin-top:calc(var(--u)*1.7)}
+#p2 .main p b{color:var(--brand-ink);font-weight:700}
+#p2 .main .not{font-size:var(--fs-small);color:var(--muted-lt);font-style:italic;margin-top:calc(var(--u)*1.3)}
+#p2 .side{padding-top:calc(var(--u)*.4)}
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:calc(var(--u)*.55);margin-top:calc(var(--u)*.9)}
+.chips li{font-size:calc(var(--u)*.92);font-weight:700;padding:calc(var(--u)*.5) calc(var(--u)*.95);border-radius:999px;border:1.5px solid var(--steel);color:var(--steel-dk);
+  transition:background .25s,color .25s,transform .25s}
+.chips li:nth-child(odd){background:var(--brand-ink);border-color:var(--brand-ink);color:var(--paper)}
+.chips li:hover{background:var(--steel);border-color:var(--steel);color:var(--paper);transform:translateY(-2px)}
+#p2 .chair-note{margin-top:calc(var(--u)*1.8);border-left:calc(var(--u)*.22) solid var(--steel);padding-left:calc(var(--u)*1.1)}
+#p2 .chair-note p{font-size:var(--fs-small);color:#3A3D44;margin-top:calc(var(--u)*.5);line-height:1.5}
+#p2 .chair-note p b{color:var(--brand-ink)}
+
+/* ═══ PAGE 3 · THE EPISODE ═══════════════════ */
+#p3 .head{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*4.6);display:flex;justify-content:space-between;align-items:flex-end}
+#p3 h2{margin-top:calc(var(--u)*1.6)}
+.switch{position:relative;display:flex;padding:calc(var(--u)*.3);border-radius:999px;background:var(--ink-3);border:1px solid var(--line)}
+.switch button{position:relative;z-index:1;font-family:var(--mono);font-size:calc(var(--u)*.82);font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  padding:calc(var(--u)*.85) calc(var(--u)*1.5);border-radius:999px;color:var(--muted);transition:color .3s}
+.switch button[aria-pressed="true"]{color:var(--paper)}
+.switch .thumb{position:absolute;top:calc(var(--u)*.3);bottom:calc(var(--u)*.3);border-radius:999px;background:var(--steel);
+  box-shadow:0 0 calc(var(--u)*1.6) rgba(70,130,180,.55);transition:left .45s cubic-bezier(.3,.8,.2,1),width .45s cubic-bezier(.3,.8,.2,1)}
+#p3 .mid{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*15);display:grid;grid-template-columns:1fr 1.15fr;gap:calc(var(--u)*3)}
+.typecard{border-left:calc(var(--u)*.25) solid var(--steel);padding-left:calc(var(--u)*1.5)}
+.typecard .nm{font-size:calc(var(--u)*2.6);font-weight:800;letter-spacing:-.03em;margin-top:calc(var(--u)*.5)}
+.typecard .dz{margin-top:calc(var(--u)*.8);color:#C9CED6;max-width:95%}
+.typecard .meta{display:flex;gap:calc(var(--u)*2.2);margin-top:calc(var(--u)*1.3)}
+.typecard .meta div{font-family:var(--mono);font-size:var(--fs-mono);letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.typecard .meta b{display:block;font-family:var(--sans);font-size:calc(var(--u)*1.25);letter-spacing:-.01em;text-transform:none;color:var(--paper);font-weight:700;margin-top:calc(var(--u)*.3)}
+.swap{transition:opacity .25s ease,transform .3s ease}
+.swap.out{opacity:0;transform:translateY(calc(var(--u)*.6))}
+.readout{background:linear-gradient(140deg,rgba(70,130,180,.16),rgba(70,130,180,.04));border:1px solid rgba(143,182,216,.22);border-radius:calc(var(--u)*.5);
+  padding:calc(var(--u)*1.4) calc(var(--u)*1.6);align-self:start;min-height:calc(var(--u)*10.2)}
+.readout .top{display:flex;justify-content:space-between;align-items:baseline}
+.readout .bn{font-size:calc(var(--u)*1.7);font-weight:800;letter-spacing:-.02em;margin-top:calc(var(--u)*.6)}
+.readout .bt{font-family:var(--mono);font-size:var(--fs-mono);color:var(--steel-lt);letter-spacing:.1em}
+.readout p{margin-top:calc(var(--u)*.6);color:#C9CED6;font-size:var(--fs-small)}
+#p3 .tl{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*30.5)}
+.tl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:calc(var(--u)*.8)}
+.tl-head .legend{display:flex;gap:calc(var(--u)*1.6);font-family:var(--mono);font-size:var(--fs-mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.tl-head .legend i{display:inline-block;width:calc(var(--u)*1.1);height:calc(var(--u)*.6);vertical-align:middle;margin-right:.5em;border-radius:2px}
+.tl-head .legend .s{background:var(--steel)}
+.tl-head .legend .f{background:repeating-linear-gradient(135deg,rgba(143,182,216,.6) 0 3px,transparent 3px 7px);border:1px solid var(--steel-lt)}
+.track{position:relative;height:calc(var(--u)*5);}
+.bar{position:absolute;left:0;top:0;bottom:0;display:flex;gap:calc(var(--u)*.22);transition:width .7s cubic-bezier(.3,.8,.2,1)}
+.blk{position:relative;flex:var(--g) 1 0;min-width:0;border-radius:calc(var(--u)*.3);background:var(--steel-600);overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;padding:0 calc(var(--u)*.7);text-align:left;
+  transition:flex-grow .7s cubic-bezier(.3,.8,.2,1),opacity .45s,background .25s,transform .25s,padding .5s}
+.blk.spine{background:linear-gradient(180deg,var(--steel),var(--steel-600))}
+.blk.float{background:repeating-linear-gradient(135deg,rgba(143,182,216,.32) 0 4px,rgba(70,130,180,.1) 4px 10px);border:1px solid var(--steel-lt)}
+.blk.mini{padding:0;align-items:center}
+.blk.mini .bl,.blk.mini .bm{display:none}
+.blk .bn{font-family:var(--mono);font-size:calc(var(--u)*.7);font-weight:600;letter-spacing:.06em;color:rgba(250,249,246,.75);white-space:nowrap}
+.blk .bl{font-size:calc(var(--u)*1.0);font-weight:800;letter-spacing:-.01em;white-space:nowrap;color:var(--paper);margin-top:calc(var(--u)*.25)}
+.blk .bm{font-family:var(--mono);font-size:calc(var(--u)*.68);color:rgba(250,249,246,.72);white-space:nowrap;margin-top:calc(var(--u)*.2)}
+.blk:hover,.blk.on{transform:translateY(calc(var(--u)*-.35));box-shadow:0 calc(var(--u)*.6) calc(var(--u)*1.4) rgba(70,130,180,.45)}
+.blk.on{outline:2px solid var(--paper);outline-offset:2px}
+.blk.gone{flex-grow:0;opacity:0;padding:0;border-width:0;pointer-events:none}
+.ticks{position:relative;height:calc(var(--u)*2.2);margin-top:calc(var(--u)*.6);border-top:1px solid var(--line)}
+.ticks span{position:absolute;top:calc(var(--u)*.5);transform:translateX(-50%);font-family:var(--mono);font-size:calc(var(--u)*.66);color:var(--faint)}
+.ticks span::before{content:"";position:absolute;left:50%;top:calc(var(--u)*-.55);height:calc(var(--u)*.35);border-left:1px solid var(--line)}
+.floor{position:absolute;top:calc(var(--u)*-.5);bottom:calc(var(--u)*-3.4);width:0;border-left:2px dashed var(--paper);opacity:.8}
+.floor b{position:absolute;bottom:0;left:calc(var(--u)*.5);white-space:nowrap;font-family:var(--mono);font-size:calc(var(--u)*.66);font-weight:600;letter-spacing:.14em;color:var(--paper)}
+.facts{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*44);display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1.2)}
+.facts div{border-top:1px solid var(--line);padding-top:calc(var(--u)*.9);font-family:var(--mono);font-size:var(--fs-mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase;line-height:1.6}
+.facts b{color:var(--paper);font-weight:600}
+
+/* ═══ PAGE 4 · BUILT TO TRAVEL ═══════════════ */
+#p4 .head{position:absolute;left:var(--pad);top:calc(var(--u)*4.6)}
+#p4 h2{margin-top:calc(var(--u)*1.6)}
+#p4 .bento{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*15.2);bottom:calc(var(--u)*6.4);
+  display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(3,1fr);gap:calc(var(--u)*1)}
+.mod{border-radius:calc(var(--u)*.6);padding:calc(var(--u)*1.5);position:relative;overflow:hidden}
+.mod.big{grid-column:1/6;grid-row:1/4;background:var(--ink);color:var(--text);display:flex;flex-direction:column}
+.mod.big .n{font-size:calc(var(--u)*8.6);font-weight:900;letter-spacing:-.06em;line-height:.9;margin-top:auto;color:var(--paper)}
+.mod.big .n small{font-size:.38em;font-weight:700;color:var(--steel-lt);letter-spacing:-.02em;margin-left:.08em}
+.mod.big .lab{font-size:calc(var(--u)*1.2);font-weight:700;margin-top:calc(var(--u)*.7);line-height:1.3;color:var(--paper)}
+.cmp{margin-top:calc(var(--u)*1.6);display:grid;gap:calc(var(--u)*.75)}
+.cmp .row{display:grid;grid-template-columns:calc(var(--u)*8.2) 1fr calc(var(--u)*4.2);align-items:center;gap:calc(var(--u)*.8);font-family:var(--mono);font-size:calc(var(--u)*.7);letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.cmp .row b{font-family:var(--sans);font-size:calc(var(--u)*.95);color:var(--paper);text-align:right;letter-spacing:0}
+.cmp .rail2{height:calc(var(--u)*.9);background:var(--ink-3);border-radius:99px;overflow:hidden}
+.cmp .fill{height:100%;width:0;background:linear-gradient(90deg,var(--steel-600),var(--steel-lt));border-radius:99px;transition:width 1.6s cubic-bezier(.2,.8,.2,1) .3s}
+.cmp .fill.lo{background:var(--muted-lt)}
+.mod.big .src{font-family:var(--mono);font-size:calc(var(--u)*.6);letter-spacing:.06em;color:var(--faint);margin-top:calc(var(--u)*1.4);line-height:1.55;border-top:1px solid var(--line);padding-top:calc(var(--u)*.8)}
+.mod.look{grid-column:6/10;grid-row:1/4;padding:0;background:radial-gradient(120% 120% at 40% 30%,#2E567A,#121418 70%);color:var(--paper)}
+.mod.look img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s ease}
+.mod.look:hover img{transform:scale(1.04)}
+.mod.look::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,20,24,0) 35%,rgba(18,20,24,.92) 100%)}
+.mod.look .txt{position:absolute;left:calc(var(--u)*1.5);right:calc(var(--u)*1.5);bottom:calc(var(--u)*1.5);z-index:2}
+.mod.look .txt p{font-size:calc(var(--u)*1.35);font-weight:700;line-height:1.3;margin-top:calc(var(--u)*.6);letter-spacing:-.01em}
+.mod.look .cap{top:calc(var(--u)*1.2);right:calc(var(--u)*1.2);z-index:2}
+.mod.look .k{color:var(--steel-lt)}
+.mod.plat{grid-column:10/13;background:var(--paper-2);border:1px solid var(--paper-line);display:flex;flex-direction:column;justify-content:center;transition:background .25s,transform .25s}
+.mod.plat:hover{background:#fff;transform:translateX(calc(var(--u)*-.3))}
+.mod.plat .pl{font-size:calc(var(--u)*1.35);font-weight:800;letter-spacing:-.015em;margin-top:calc(var(--u)*.45);color:var(--brand-ink)}
+.mod.plat .ps{font-size:calc(var(--u)*.85);color:var(--muted-lt);margin-top:calc(var(--u)*.25);line-height:1.4}
+.mod.plat .tag{position:absolute;right:calc(var(--u)*1.2);top:calc(var(--u)*1.2);font-family:var(--mono);font-size:calc(var(--u)*.62);color:var(--steel);letter-spacing:.1em}
+
+/* ═══ PAGE 5 · CLOSE ═════════════════════════ */
+#p5 .photo{position:absolute;inset:0;z-index:-2;background:radial-gradient(110% 120% at 70% 30%,#2E567A,#121418 65%)}
+#p5 .photo img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.08);transition:transform 8s ease-out}
+#p5.in .photo img{transform:scale(1)}
+#p5 .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(18,20,24,.95) 0%,rgba(18,20,24,.82) 45%,rgba(18,20,24,.55) 100%),linear-gradient(0deg,rgba(18,20,24,.9),rgba(18,20,24,0) 55%)}
+#p5 .cap{right:var(--pad);bottom:calc(var(--u)*5.2)}
+#p5 .head{position:absolute;left:var(--pad);top:calc(var(--u)*4.6)}
+#p5 h2{font-size:calc(var(--u)*4.8);margin-top:calc(var(--u)*1.6);text-transform:uppercase;letter-spacing:-.045em}
+#p5 .team{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*16.2);display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*.8)}
+.mem{padding:calc(var(--u)*1) calc(var(--u)*1.1);border-radius:calc(var(--u)*.5);background:rgba(25,28,33,.62);border:1px solid rgba(143,182,216,.18);backdrop-filter:blur(14px);
+  transition:border-color .25s,transform .25s}
+.mem:hover{border-color:var(--steel-lt);transform:translateY(calc(var(--u)*-.3))}
+.mem .ix{font-family:var(--mono);font-size:var(--fs-mono);color:var(--steel-lt);letter-spacing:.1em}
+.mem .who{font-size:calc(var(--u)*1.15);font-weight:800;letter-spacing:-.015em;margin-top:calc(var(--u)*.55);color:var(--paper);line-height:1.15}
+.mem .lane{font-family:var(--mono);font-size:calc(var(--u)*.62);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:calc(var(--u)*.5);line-height:1.5}
+.mem .ix{text-transform:uppercase}
+.mem.tbc{border-style:dashed;border-color:rgba(143,182,216,.4);background:rgba(25,28,33,.32)}
+.mem.tbc .who{color:var(--muted)}
+#p5 .note{grid-column:1/-1;margin-top:calc(var(--u)*.5);font-size:var(--fs-small);color:var(--muted)}
+#p5 .bottom{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*37.8);display:block;gap:calc(var(--u)*2.4);align-items:stretch}
+.ribbon{display:grid;grid-template-columns:.9fr .9fr 2.5fr .95fr;gap:0;border-top:1px solid var(--line)}
+.ribbon .st{padding:calc(var(--u)*1.1) calc(var(--u)*1.2) 0 0;position:relative}
+.ribbon .st::before{content:"";position:absolute;top:calc(var(--u)*-.38);left:0;width:calc(var(--u)*.7);height:calc(var(--u)*.7);border-radius:50%;background:var(--ink);border:2px solid var(--steel-lt)}
+.ribbon .st:last-child::before{background:var(--steel);border-color:var(--steel)}
+.ribbon .sn{font-family:var(--mono);font-size:var(--fs-mono);font-weight:600;color:var(--steel-lt);letter-spacing:.1em;text-transform:uppercase}
+.ribbon .sl{font-size:calc(var(--u)*1.3);font-weight:800;letter-spacing:-.015em;margin-top:calc(var(--u)*.6);color:var(--paper)}
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*1.1);margin-top:calc(var(--u)*.6)}
+.tracks > div{border-left:2px solid var(--steel);padding-left:calc(var(--u)*.8)}
+.tracks .sl{margin-top:0}
+.ribbon .sd{font-size:var(--fs-small);color:var(--muted);margin-top:calc(var(--u)*.4);line-height:1.45;padding-right:calc(var(--u)*.8)}
+#p5 .act{position:absolute;right:var(--pad);top:calc(var(--u)*5.4);width:calc(var(--u)*31)}
+.act{display:block;border-radius:calc(var(--u)*.6);padding:calc(var(--u)*1.5) calc(var(--u)*1.7);background:var(--steel);color:var(--paper);
+  box-shadow:0 calc(var(--u)*1) calc(var(--u)*3) rgba(70,130,180,.35);transition:transform .25s,box-shadow .25s,background .25s}
+.act:hover{transform:translateY(calc(var(--u)*-.3));background:#5590C2;box-shadow:0 calc(var(--u)*1.4) calc(var(--u)*3.4) rgba(70,130,180,.5)}
+.act .k{color:rgba(250,249,246,.8)}
+.act .t{font-size:calc(var(--u)*1.55);font-weight:800;letter-spacing:-.02em;margin-top:calc(var(--u)*.6);line-height:1.15}
+.act .e{font-family:var(--mono);font-size:calc(var(--u)*.82);margin-top:calc(var(--u)*1);letter-spacing:.02em;display:flex;justify-content:space-between;align-items:center}
+.act .addr{user-select:all;-webkit-user-select:all}
+.act .copy{font-family:var(--mono);font-size:calc(var(--u)*.68);font-weight:600;letter-spacing:.16em;padding:calc(var(--u)*.45) calc(var(--u)*.8);border-radius:999px;background:rgba(250,249,246,.16);border:1px solid rgba(250,249,246,.4);color:var(--paper);transition:background .2s}
+.act .copy:hover{background:rgba(250,249,246,.3)}
+.act .copy:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
+
+/* ── phone: reflow, no fixed ratio ─────────── */
+@media screen and (max-width:760px){
+  body{overflow:auto}
+  .deck{height:auto;overflow:visible;scroll-snap-type:none}
+  .slot{height:auto;display:block}
+  .page{width:100%;aspect-ratio:auto;container-type:normal;--u:10px;--pad:22px;
+    --fs-h1:52px;--fs-h2:30px;--fs-lede:17px;--fs-body:15.5px;--fs-small:14px;--fs-mono:11px;padding:56px var(--pad) 64px}
+  .rail{display:none}
+  .fs{display:none}
+  .page > *,#p1 .left,#p1 .mission,#p1 .stage,#p2 .body,#p3 .head,#p3 .mid,#p3 .tl,.facts,#p4 .head,#p4 .bento,#p5 .head,#p5 .team,#p5 .note,#p5 .bottom{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:auto}
+  .page > .bg{position:absolute;inset:0}
+  .run{position:relative;margin-top:36px;left:auto;right:auto;bottom:auto;font-size:10px}
+  #p1 .stage{height:340px;margin:18px -22px 0}
+  #p1 .hint{bottom:8px}
+  #p1 .mission{margin-top:22px}
+  #p2{padding-top:0}
+  #p2 .hero{position:relative;height:230px;margin:0 -22px}
+  #p2 .body{grid-template-columns:1fr;gap:28px;margin-top:8px}
+  #p3 .head{flex-direction:column;align-items:flex-start;gap:22px}
+  #p3 .mid{grid-template-columns:1fr;margin-top:26px;gap:22px}
+  #p3 .tl{margin-top:30px}
+  .track{height:64px}
+  .blk .bl,.blk .bm{display:none}
+  .facts{grid-template-columns:1fr;margin-top:30px}
+  #p4 .bento{display:flex;flex-direction:column;margin-top:26px;gap:12px}
+  .mod{padding:20px}
+  .mod.look{min-height:300px}
+  .mod.big .n{font-size:80px}
+  .cmp .row{grid-template-columns:96px 1fr 46px;font-size:10px}
+  .cmp .row b{font-size:13px}
+  .mod.big .src{font-size:10px}
+  #p5 .photo{position:absolute;inset:0}
+  #p5 .cap{position:absolute;top:18px;right:22px;bottom:auto}
+  #p5 .act{position:relative;right:auto;top:auto;width:auto;margin-top:24px}
+  #p5 h2{font-size:44px}
+  #p5 .team{grid-template-columns:1fr 1fr;margin-top:26px}
+  #p5 .note{margin-top:14px}
+  #p5 .bottom{grid-template-columns:1fr;margin-top:30px;gap:28px}
+  .ribbon{grid-template-columns:1fr;border-top:0;border-left:1px solid var(--line);padding-left:18px;gap:18px}
+  .ribbon .st{padding:0}
+  .tracks{grid-template-columns:1fr;gap:12px}
+  .ribbon .st::before{left:-23px;top:4px}
+  .cap{font-size:9px}
+  .rise{opacity:1;transform:none;transition:none}
+  #p1 .host{font-size:11px}
+  .chips li{font-size:13px}
+  .switch button{font-size:11px;padding:10px 16px}
+  .ticks span,.floor b,.blk .bn{font-size:9px}
+  .mod.big .lab{font-size:15px}
+  .mod.plat .ps{font-size:13px}
+  .mod.plat .tag{font-size:10px}
+  .mem .lane{font-size:10px}
+  .mem .ix{font-size:10px}
+  .act .e{font-size:12px}
+  .act .copy{font-size:10px}
+  .act .k{font-size:10px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .deck{scroll-behavior:auto}
+  .rise,#p1 h1 .w{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;transition:none!important}
+  #p2 .hero img,#p5 .photo img{transform:none!important;transition:none!important}
+}
+
+/* ── print / PDF: 5 landscape pages ────────── */
+@page{size:13.333in 7.5in;margin:0}
+@media print{
+  html,body{background:var(--ink);overflow:visible;height:auto}
+  .deck{height:auto;overflow:visible;scroll-snap-type:none}
+  .slot{height:7.5in;width:13.333in;display:block;break-after:page;page-break-after:always;overflow:hidden}
+  .slot:last-child{break-after:auto;page-break-after:auto}
+  .page{width:13.333in;height:7.5in;aspect-ratio:auto}
+  .rail,.fs,#p1 .hint{display:none!important}
+  .bg rect[filter]{display:none}
+  .rise,#p1 h1 .w{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;transition:none!important}
+  #p2 .hero img,#p5 .photo img{transform:none!important}
+  .printing #chair{display:none}
+  .printing .chair-still{display:block}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<button class="fs" id="fs" type="button" aria-label="Present full screen">PRESENT ⤢</button>
+<nav class="rail" aria-label="Pages">
+  <button type="button" data-go="0" aria-label="Page 1, cover">01</button>
+  <button type="button" data-go="1" aria-label="Page 2, the show">02</button>
+  <button type="button" data-go="2" aria-label="Page 3, the episode">03</button>
+  <button type="button" data-go="3" aria-label="Page 4, built to travel">04</button>
+  <button type="button" data-go="4" aria-label="Page 5, the team">05</button>
+</nav>
+
+<main class="deck" id="deck">
+
+<!-- ═══ 01 · COVER ═══ -->
+<section class="slot"><div class="page dark" id="p1">
+  <svg class="bg" viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <radialGradient id="g1" cx="0.76" cy="0.42" r="0.6"><stop offset="0" stop-color="#4682B4" stop-opacity=".30"/><stop offset=".55" stop-color="#4682B4" stop-opacity=".06"/><stop offset="1" stop-color="#4682B4" stop-opacity="0"/></radialGradient>
+      <filter id="gr1"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .09 0"/></filter>
+    </defs>
+    <rect width="1920" height="1080" fill="#121418"/><rect width="1920" height="1080" fill="url(#g1)"/><rect width="1920" height="1080" filter="url(#gr1)"/>
+  </svg>
+
+  <div class="left">
+    <div class="badge rise" style="--i:0"><span class="num">01</span><span class="lbl">Gas Noir Digital presents</span></div>
+    <h1 aria-label="No Filter, No Favours"><span class="w" style="--d:0">No</span> <span class="w" style="--d:1">Filter,</span><br><span class="w accent thin" style="--d:2">No</span> <span class="w accent thin" style="--d:3">Favours</span></h1>
+    <div class="host rise" style="--i:5"><i></i>Hosted by Rock Da House</div>
+    <p class="lede rise" style="--i:6">An urban lifestyle show out of Toronto, with world-stage topics.</p>
+  </div>
+
+  <div class="stage rise" style="--i:3">
+    <canvas id="chair" aria-label="3D barber chair. Drag to spin it, click to pump the seat." role="img"></canvas>
+    <img class="chair-still" id="chairStill" src="assets/chair.png" alt="A black leather barber chair with chrome base and steel-blue piping">
+    <div class="hint" aria-hidden="true">DRAG TO SPIN · CLICK TO PUMP<span class="lvl" id="lvl">▮▯▯▯</span></div>
+  </div>
+
+  <div class="mission rise" style="--i:7">
+    <q>Every story has a lesson. <span class="accent" style="display:inline;font-style:normal;margin:0;font-size:inherit;font-weight:inherit">We just tell it funny.</span></q>
+    <span>No filter on the conversation. No favours in the opinion.</span>
+  </div>
+
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>01 / 05</span></div>
+</div></section>
+
+<!-- ═══ 02 · THE SHOW ═══ -->
+<section class="slot"><div class="page light" id="p2">
+  <figure class="hero">
+    <img onerror="this.style.visibility='hidden'" src="assets/render-01.jpg" alt="Concept render: an empty barbershop at night, one leather chair under a pendant light, steel-blue glow">
+    <div class="badge"><span class="num">02</span><span class="lbl">The show</span></div>
+    <figcaption class="cap">Concept render</figcaption>
+  </figure>
+
+  <div class="body">
+    <div class="main">
+      <h2 class="rise" style="--i:0">Made in Toronto.<br><span class="accent">About the world.</span></h2>
+      <div class="rule rise" style="--i:1"></div>
+      <p class="rise" style="--i:2">A conversation show hosted by <b>Rock Da House</b>: Toronto DJ, barbershop owner, twenty years in the city's music and nightlife. However crude the topic gets, it carries a lesson by the end. <b>The humour is the delivery, not the point.</b></p>
+      <p class="rise" style="--i:3">Shot in a working barbershop, kitchen and 100-person event space downtown. The room is part of the show, and the businesses in it show up on set with no sales pitch on camera.</p>
+      <p class="not rise" style="--i:4">Not a Toronto industry show. Not a rap-politics show. Toronto is where it's made, not what it's about.</p>
+    </div>
+    <div class="side">
+      <div class="k rise" style="--i:2">On the table</div>
+      <ul class="chips">
+        <li class="rise" style="--i:3">Crime</li><li class="rise" style="--i:3.5">Sex &amp; sexual health</li><li class="rise" style="--i:4">The economy</li>
+        <li class="rise" style="--i:4.5">Sport</li><li class="rise" style="--i:5">Politics</li><li class="rise" style="--i:5.5">Nightlife</li>
+        <li class="rise" style="--i:6">Real estate</li><li class="rise" style="--i:6.5">Film</li><li class="rise" style="--i:7">The music business</li>
+      </ul>
+      <div class="chair-note rise" style="--i:8">
+        <div class="k">In the chair</div>
+        <p>Doctors, tradespeople, a special-effects artist out of Regent Park, a working Detroit actor, a stunt performer. <b>The barber chair is the story engine</b>: every walk of life already sits in it, every week.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>02 / 05</span></div>
+</div></section>
+
+<!-- ═══ 03 · THE EPISODE ═══ -->
+<section class="slot"><div class="page dark" id="p3">
+  <svg class="bg" viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <radialGradient id="g3" cx="0.15" cy="0.95" r="0.7"><stop offset="0" stop-color="#4682B4" stop-opacity=".22"/><stop offset="1" stop-color="#4682B4" stop-opacity="0"/></radialGradient>
+      <filter id="gr3"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .08 0"/></filter>
+    </defs>
+    <rect width="1920" height="1080" fill="#121418"/><rect width="1920" height="1080" fill="url(#g3)"/><rect width="1920" height="1080" filter="url(#gr3)"/>
+  </svg>
+
+  <div class="head">
+    <div>
+      <div class="badge rise" style="--i:0"><span class="num">03</span><span class="lbl">The episode</span></div>
+      <h2 class="rise" style="--i:1">Two ways in. <span class="accent">One run of show.</span></h2>
+    </div>
+    <div class="switch rise" style="--i:2" role="group" aria-label="Episode type">
+      <span class="thumb" id="thumb"></span>
+      <button type="button" data-type="hs" aria-pressed="true">House Stories</button>
+      <button type="button" data-type="chair" aria-pressed="false">The Chair</button>
+    </div>
+  </div>
+
+  <div class="mid">
+    <div class="typecard rise swap" style="--i:3" id="typecard" aria-live="polite">
+      <div class="k" id="tEy">Default</div>
+      <div class="nm" id="tNm">House Stories</div>
+      <p class="dz" id="tDz">Rock tells it: stories from his own life and from people he knows, and he names the lesson inside them. No booking required.</p>
+      <div class="meta">
+        <div>Story told by<b id="tWho">Rock</b></div>
+        <div>Runtime<b id="tRun">52–60 min</b></div>
+        <div>Liftable cuts<b id="tCut">Six</b></div>
+      </div>
+    </div>
+    <div class="readout rise swap" style="--i:4" id="readout" aria-live="polite">
+      <div class="top"><span class="k">Inside the block</span><span class="bt" id="rT">18–25 min</span></div>
+      <div class="bn" id="rN">The story</div>
+      <p id="rD">One story, told start to finish. The lesson gets named at the end, and the whole block lifts out as its own video.</p>
+    </div>
+  </div>
+
+  <div class="tl rise" style="--i:5">
+    <div class="tl-head">
+      <span class="k">The run of show · tap a block</span>
+      <span class="legend"><span><i class="s"></i>Spine, every episode</span><span><i class="f"></i>Floating segment</span></span>
+    </div>
+    <div class="track" id="track">
+      <div class="bar" id="bar"></div>
+      <div class="floor" id="floor"><b>45 MIN FLOOR</b></div>
+    </div>
+    <div class="ticks" id="ticks"></div>
+  </div>
+
+  <div class="facts rise" style="--i:6">
+    <div><b>45 minutes minimum</b><br>every episode, both types</div>
+    <div><b>The board is in Rock&#8217;s hands</b><br>he runs the drops live and sets the vibe of every episode</div>
+    <div><b>Episode 1 is neither</b><br>it premieres at the launch party, built once</div>
+  </div>
+
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>03 / 05</span></div>
+</div></section>
+
+<!-- ═══ 04 · BUILT TO TRAVEL ═══ -->
+<section class="slot"><div class="page light" id="p4">
+  <div class="head">
+    <div class="badge rise" style="--i:0"><span class="num">04</span><span class="lbl">Built to travel</span></div>
+    <h2 class="rise" style="--i:1">The segment <span class="accent">is the show.</span></h2>
+  </div>
+
+  <div class="bento">
+    <div class="mod big rise" style="--i:2">
+      <div class="k">Why every block stands alone</div>
+      <div class="n"><span id="cnt">402</span><small>K</small></div>
+      <div class="lab">views on a 9-minute segment cut, against 3.3K–13K for the full episode it came from.</div>
+      <div class="cmp" id="cmp">
+        <div class="row"><span>Segment cut</span><div class="rail2"><div class="fill" data-w="100"></div></div><b>402K</b></div>
+        <div class="row"><span>Segment cut</span><div class="rail2"><div class="fill" data-w="80.8"></div></div><b>325K</b></div>
+        <div class="row"><span>Full episode</span><div class="rail2"><div class="fill lo" data-w="3.2"></div></div><b>13K</b></div>
+      </div>
+      <div class="src">Source: UNINTERRUPTED on YouTube (797K subscribers, the home of <i>The Shop</i>). View counts pulled Nov 2026. So every block here is cut with its own open and close, ready to lift out.</div>
+    </div>
+
+    <div class="mod look rise" style="--i:3">
+      <img onerror="this.style.visibility='hidden'" src="assets/render-02.jpg" alt="Concept render: a DJ mixer and turntables on a wood counter, steel-blue rim light">
+      <span class="cap">Concept render</span>
+      <div class="txt">
+        <div class="k">The look</div>
+        <p>Multi-camera, with hardwired mics on the desk as part of the set. Cut clean enough that New York can't place it as Canadian.</p>
+      </div>
+    </div>
+
+    <div class="mod plat rise" style="--i:4"><span class="tag">45+ MIN</span><div class="k">Long</div><div class="pl">YouTube · Spotify · Apple</div><div class="ps">The full episode, every week</div></div>
+    <div class="mod plat rise" style="--i:5"><span class="tag">9:16</span><div class="k">Short</div><div class="pl">TikTok · Reels · Shorts</div><div class="ps">Every block cut vertical</div></div>
+    <div class="mod plat rise" style="--i:6"><span class="tag">LIVE</span><div class="k">Live</div><div class="pl">Twitch · TikTok · Kick</div><div class="ps">Simulcast from the room</div></div>
+  </div>
+
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>04 / 05</span></div>
+</div></section>
+
+<!-- ═══ 05 · CLOSE ═══ -->
+<section class="slot"><div class="page dark" id="p5">
+  <div class="photo"><img onerror="this.style.visibility='hidden'" src="assets/render-03.jpg" alt="Concept render: an empty event space set for a live taping, a big screen glowing steel blue"></div>
+  <svg class="bg" viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true" style="z-index:-1">
+    <defs><filter id="gr5"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .08 0"/></filter></defs>
+    <rect width="1920" height="1080" filter="url(#gr5)"/>
+  </svg>
+  <span class="cap">Concept render</span>
+
+  <div class="head">
+    <div class="badge rise" style="--i:0"><span class="num">05</span><span class="lbl">Who makes it · when</span></div>
+    <h2 class="rise" style="--i:1">Pull up <span class="accent">a chair.</span></h2>
+  </div>
+
+  <div class="act rise" style="--i:1.5">
+      <div class="k">Be in the chair · partner with the show</div>
+      <div class="t">Talk to production</div>
+      <div class="e"><span class="addr" id="addr">jerome.gasnoirdigital@gmail.com</span><button type="button" class="copy" id="copy" aria-label="Copy email address">COPY</button></div>
+  </div>
+
+  <div class="team">
+    <div class="mem rise" style="--i:2"><div class="ix">Host</div><div class="who">Rock Da House</div><div class="lane">Host · creative direction · runs the board</div></div>
+    <div class="mem rise" style="--i:2.3"><div class="ix">Exec producer</div><div class="who">G Vine / Chef&nbsp;Courtney</div><div class="lane">Exec producer · the space</div></div>
+    <div class="mem rise" style="--i:2.6"><div class="ix">Production</div><div class="who">Jerome · Gas Noir Digital</div><div class="lane">Production lead · guests + rollout</div></div>
+    <div class="mem rise" style="--i:2.9"><div class="ix">Writer</div><div class="who">Akeisha</div><div class="lane">Writer · guest coordination, with Jerome</div></div>
+    <div class="mem rise" style="--i:3.2"><div class="ix">Post</div><div class="who">Dario</div><div class="lane">Main editor</div></div>
+    <div class="mem rise" style="--i:3.5"><div class="ix">Audio</div><div class="who">TQ</div><div class="lane">Audio engineer</div></div>
+    <div class="mem rise" style="--i:3.8"><div class="ix">Tech</div><div class="who">Sheldon</div><div class="lane">Technical advisor · works with TQ</div></div>
+    <div class="mem rise" style="--i:4.1"><div class="ix">Camera</div><div class="who">Gebreel</div><div class="lane">Camera</div></div>
+    <div class="mem rise" style="--i:4.4"><div class="ix">Camera · social</div><div class="who">Myles</div><div class="lane">Camera · social media + rollout strategy, with Jerome</div></div>
+    <div class="mem tbc rise" style="--i:4.7"><div class="ix">To be confirmed</div><div class="who">Lead camera</div><div class="lane">Locking in before the first shoot</div></div>
+    <p class="note rise" style="--i:5">The team so far, growing with the show. Guest bookings go through Akeisha and Jerome.</p>
+  </div>
+
+  <div class="bottom">
+    <div class="ribbon rise" style="--i:6">
+      <div class="st"><div class="sn">Fri 11 – Sun 13 Dec</div><div class="sl">Test session</div><div class="sd">Cameras, desk mics and Rock&#8217;s board run in the space. Aiming for Sun 13.</div></div>
+      <div class="st"><div class="sn">Sat 9 Jan 2027</div><div class="sl">First shoot</div><div class="sd">Everything ironed out. Episodes start going into the vault.</div></div>
+      <div class="st duo"><div class="sn">Jan – Mar · both at once</div><div class="tracks"><div><div class="sl">Build the vault</div><div class="sd">Episodes shot, cut and banked. Nothing goes out yet.</div></div><div><div class="sl">Marketing push</div><div class="sd">Rock guests on other podcasts, talking barbering and the show to come.</div></div></div></div>
+      <div class="st"><div class="sn">Apr 3–4 or 10–11</div><div class="sl">Launch party</div><div class="sd">The podcast party. Episode 1 premieres with a room full of people.</div></div>
+    </div>
+  </div>
+
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b> · @JMoneycreates</span><span>05 / 05</span></div>
+</div></section>
+
+</main>
+
+<script>
+/* ── navigation, reveals, fullscreen ── */
+(function(){
+  const deck=document.getElementById('deck');
+  const slots=[...document.querySelectorAll('.slot')];
+  const pages=[...document.querySelectorAll('.page')];
+  const dots=[...document.querySelectorAll('.rail button')];
+  let cur=0;
+  const go=i=>{i=Math.max(0,Math.min(slots.length-1,i));slots[i].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});};
+  dots.forEach(d=>d.addEventListener('click',()=>go(+d.dataset.go)));
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{
+    if(e.isIntersecting&&e.intersectionRatio>=.35){e.target.classList.add('in');
+      const i=pages.indexOf(e.target);if(e.intersectionRatio>=.55){cur=i;dots.forEach((d,j)=>d.setAttribute('aria-current',j===i?'true':'false'));}
+      document.dispatchEvent(new CustomEvent('pagein',{detail:e.target.id}));}
+  });},{threshold:[.35,.55,.8]});
+  pages.forEach(p=>io.observe(p));
+  addEventListener('keydown',e=>{
+    if(e.target.closest&&e.target.closest('button,a,input'))
+      { if(e.key===' '||e.key==='Enter') return; }
+    if(['ArrowDown','ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1);}
+    else if(['ArrowUp','ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1);}
+    else if(e.key==='Home'){e.preventDefault();go(0);} else if(e.key==='End'){e.preventDefault();go(slots.length-1);}
+  });
+  document.getElementById('fs').addEventListener('click',()=>{
+    const el=document.documentElement;
+    try{const r=!document.fullscreenElement?(el.requestFullscreen||el.webkitRequestFullscreen).call(el):document.exitFullscreen();r&&r.catch&&r.catch(()=>{});}catch(e){}
+  });
+  addEventListener('beforeprint',()=>pages.forEach(p=>p.classList.add('in')));
+  const setH=()=>document.documentElement.style.setProperty('--slot-h',deck.clientHeight+'px');setH();addEventListener('resize',setH);
+  const cp=document.getElementById('copy'),ad=document.getElementById('addr');
+  cp.addEventListener('click',()=>{
+    const done=()=>{cp.textContent='COPIED';setTimeout(()=>cp.textContent='COPY',1800);};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(ad);const g=getSelection();g.removeAllRanges();g.addRange(r);cp.textContent='SELECTED';setTimeout(()=>cp.textContent='COPY',1800);};
+    try{navigator.clipboard.writeText(ad.textContent).then(done,sel);}catch(e){sel();}
+  });
+})();
+
+/* ── page 3: episode-type switch + morphing run of show ── */
+(function(){
+  const B=[
+    {id:'cold',n:'01',l:'Cold open',kind:'spine',hs:1.5,chair:1.5,t:'1–1:30 min',d:'The outlandish line that earns the click. Jump in mid-sentence, hold the payoff to the end.'},
+    {id:'ttl',n:'02',l:'Titles',kind:'spine',hs:.25,chair:.25,t:'0:15',d:'Rock hits the board and the drop is the title card. The show starts.'},
+    {id:'talk',n:'03',l:'The talk',kind:'spine',hs:17.5,chair:16.5,t:{hs:'15–20 min',chair:'15–18 min'},d:{hs:'The night’s topic, run as a conversation. Rock leads it.',chair:'The night’s topic, run as a conversation. The guest leads, Rock steers.'}},
+    {id:'ten1',n:'F1',l:'The Ten, pt 1',kind:'float',hs:8,chair:0,t:'7–9 min',d:'The worldwide singles countdown, in the room’s own opinion. Dropped in when it fits.'},
+    {id:'story',n:'04',l:'The story',kind:'spine',hs:21.5,chair:31,t:{hs:'18–25 min',chair:'28–34 min'},d:{hs:'One story, told start to finish. The lesson gets named at the end, and the whole block lifts out as its own video.',chair:'The guest’s arc in one run. Their own experience is the lesson, and Rock names it at the end.'}},
+    {id:'ten2',n:'F2',l:'The Ten, pt 2',kind:'float',hs:6,chair:0,t:'5–7 min',d:'New artists, introduced. Can run without part one.'},
+    {id:'close',n:'05',l:'The close',kind:'spine',hs:1.5,chair:1.5,t:'1:30',d:'The clipboard, the crumple, the throw at camera, the drop.'}
+  ];
+  const T={
+    hs:{ey:'Default',nm:'House Stories',dz:'Rock tells it: stories from his own life and from people he knows, and he names the lesson inside them. No booking required.',who:'Rock',run:'52–60 min',cut:'Six'},
+    chair:{ey:'When the right guest says yes',nm:'The Chair',dz:'Interview-led. The guest’s own experience is the lesson. Same mandate, told by someone who lived it.',who:'The guest',run:'46–55 min',cut:'Three, longer'}
+  };
+  const SCALE=60; // minutes across the full track
+  const bar=document.getElementById('bar'),floor=document.getElementById('floor'),ticks=document.getElementById('ticks');
+  const val=(v,m)=>typeof v==='object'?v[m]:v;
+  let mode='hs',sel='story';
+  B.forEach(b=>{
+    const el=document.createElement('button');el.type='button';el.className='blk '+b.kind;el.dataset.id=b.id;
+    el.innerHTML='<span class="bn">'+b.n+'</span><span class="bl">'+b.l+'</span><span class="bm"></span>';
+    el.addEventListener('mouseenter',()=>show(b.id));el.addEventListener('focus',()=>show(b.id));el.addEventListener('click',()=>{sel=b.id;show(b.id);});
+    bar.appendChild(el);b.el=el;
+  });
+  bar.addEventListener('mouseleave',()=>show(sel));
+  [0,15,30,45,60].forEach(m=>{const s=document.createElement('span');s.style.left=(m/SCALE*100)+'%';s.textContent=m+(m===60?' min':'');ticks.appendChild(s);});
+  floor.style.left=(45/SCALE*100)+'%';
+  function swap(el,fn){el.classList.add('out');setTimeout(()=>{fn();el.classList.remove('out');},180);}
+  function show(id){
+    const b=B.find(x=>x.id===id);if(!b||b[mode]===0)return;
+    B.forEach(x=>x.el.classList.toggle('on',x.id===id));
+    const r=document.getElementById('readout');
+    swap(r,()=>{document.getElementById('rN').textContent=b.n+' · '+b.l;document.getElementById('rT').textContent=val(b.t,mode);document.getElementById('rD').textContent=val(b.d,mode);});
+  }
+  function layout(){
+    let total=0;
+    B.forEach(b=>{const g=b[mode];total+=g;b.el.style.setProperty('--g',g);b.el.classList.toggle('gone',g===0);b.el.classList.toggle('mini',g<4);
+      b.el.tabIndex=g===0?-1:0;b.el.querySelector('.bm').textContent=val(b.t,mode);
+      b.el.setAttribute('aria-label',b.l+', '+val(b.t,mode));});
+    bar.style.width=(total/SCALE*100)+'%';
+  }
+  function setMode(m){
+    mode=m;
+    document.querySelectorAll('.switch button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.type===m?'true':'false'));
+    moveThumb();layout();
+    const t=T[m],c=document.getElementById('typecard');
+    swap(c,()=>{tEy.textContent=t.ey;tNm.textContent=t.nm;tDz.textContent=t.dz;tWho.textContent=t.who;tRun.textContent=t.run;tCut.textContent=t.cut;});
+    if(B.find(x=>x.id===sel)[m]===0)sel='story';
+    show(sel);
+  }
+  function moveThumb(){
+    const on=document.querySelector('.switch button[aria-pressed="true"]'),th=document.getElementById('thumb');
+    th.style.left=on.offsetLeft+'px';th.style.width=on.offsetWidth+'px';
+  }
+  document.querySelectorAll('.switch button').forEach(x=>x.addEventListener('click',()=>setMode(x.dataset.type)));
+  addEventListener('resize',moveThumb);
+  document.fonts&&document.fonts.ready.then(moveThumb);
+  layout();moveThumb();show(sel);
+  addEventListener('beforeprint',()=>{if(mode!=='hs')setMode('hs');});
+})();
+
+/* ── page 4: count-up + comparison bars ── */
+(function(){
+  let done=false;
+  const run=()=>{
+    if(done)return;done=true;
+    document.querySelectorAll('#cmp .fill').forEach(f=>f.style.width=f.dataset.w+'%');
+    const el=document.getElementById('cnt');
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent='402';return;}
+    const t0=performance.now(),D=1500;
+    (function tick(t){const k=Math.min(1,(t-t0)/D),e2=1-Math.pow(1-k,3);el.textContent=Math.round(402*e2);if(k<1)requestAnimationFrame(tick);})(t0);
+  };
+  new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){run();o.disconnect();}},{threshold:.4}).observe(document.getElementById('cmp'));
+  addEventListener('beforeprint',()=>{document.getElementById('cnt').textContent='402';document.querySelectorAll('#cmp .fill').forEach(f=>{f.style.transition='none';f.style.width=f.dataset.w+'%';});});
+})();
+</script>
+
+<!-- ── page 1: 3D barber chair (Three.js r160) ── -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const canvas=document.getElementById('chair');
+const stage=canvas.parentElement;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let renderer;
+try{
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,preserveDrawingBuffer:true});
+}catch(err){document.documentElement.classList.add('no-gl');throw err;}
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+const scene=new THREE.Scene();
+const pmrem=new THREE.PMREMGenerator(renderer);
+scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;
+
+const camera=new THREE.PerspectiveCamera(28,1,.1,50);
+camera.position.set(3.09,1.89,3.82);
+
+/* lights: steel-blue key, warm tungsten rim, soft fill */
+scene.add(new THREE.HemisphereLight(0x8FB6D8,0x121418,.35));
+const key=new THREE.DirectionalLight(0x9cc3e6,2.4);key.position.set(-1.6,6,1.9);key.castShadow=true;
+key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-1.5;key.shadow.camera.right=1.5;key.shadow.camera.top=1.5;key.shadow.camera.bottom=-1.5;key.shadow.radius=6;key.shadow.bias=-.0005;
+scene.add(key);
+const rim=new THREE.DirectionalLight(0xffb36b,2.2);rim.position.set(2.6,2.4,-3.2);scene.add(rim);
+const fill=new THREE.PointLight(0x4682B4,6,6,2);fill.position.set(1.8,.6,1.8);scene.add(fill);
+
+/* materials */
+const leather=new THREE.MeshPhysicalMaterial({color:0x17171a,roughness:.5,metalness:0,clearcoat:.55,clearcoatRoughness:.4,sheen:.4,sheenColor:new THREE.Color(0x4682B4),sheenRoughness:.6});
+const chrome=new THREE.MeshStandardMaterial({color:0xe8edf2,metalness:1,roughness:.12});
+const darkChrome=new THREE.MeshStandardMaterial({color:0x9aa3ad,metalness:1,roughness:.22});
+const piping=new THREE.MeshStandardMaterial({color:0x4682B4,metalness:.3,roughness:.35,emissive:0x2E567A,emissiveIntensity:.35});
+const rubber=new THREE.MeshStandardMaterial({color:0x0c0d0f,roughness:.9});
+
+const shadowCast=m=>{m.castShadow=true;m.receiveShadow=true;return m;};
+const mesh=(g,m,x=0,y=0,z=0)=>{const o=shadowCast(new THREE.Mesh(g,m));o.position.set(x,y,z);return o;};
+const tube=(pts,r,m)=>shadowCast(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p))),48,r,16,false),m));
+
+const chair=new THREE.Group();scene.add(chair);
+
+/* base + column (fixed) */
+chair.add(mesh(new THREE.CylinderGeometry(.44,.47,.05,72),chrome,0,.025,0));
+chair.add(mesh(new THREE.TorusGeometry(.445,.018,16,96).rotateX(Math.PI/2),darkChrome,0,.05,0));
+chair.add(mesh(new THREE.CylinderGeometry(.3,.4,.06,72),darkChrome,0,.08,0));
+chair.add(mesh(new THREE.CylinderGeometry(.095,.11,.36,48),chrome,0,.29,0));
+chair.add(mesh(new THREE.CylinderGeometry(.13,.13,.05,48),darkChrome,0,.48,0));
+/* pump pedal */
+const pedal=new THREE.Group();pedal.position.set(.2,.12,.16);pedal.rotation.y=-Math.PI/4.2;
+pedal.add(mesh(new THREE.CylinderGeometry(.018,.018,.32,16).rotateZ(Math.PI/2),chrome,.16,0,0));
+pedal.add(mesh(new RoundedBoxGeometry(.14,.03,.09,3,.012),rubber,.33,.005,0));
+chair.add(pedal);
+
+/* lifting group: seat, back, headrest, arms, footrest */
+const lift=new THREE.Group();const BASE_Y=.62;lift.position.y=BASE_Y;chair.add(lift);
+lift.add(mesh(new THREE.CylinderGeometry(.075,.075,.42,32),chrome,0,-.2,0)); // piston, shows as seat rises
+lift.add(mesh(new RoundedBoxGeometry(.56,.06,.5,3,.02),darkChrome,0,-.05,0)); // seat frame
+lift.add(mesh(new RoundedBoxGeometry(.66,.03,.62,4,.012),piping,0,.005,0));    // piping band
+lift.add(mesh(new RoundedBoxGeometry(.64,.15,.6,6,.06),leather,0,.09,0));     // cushion
+/* tuft lines on cushion */
+for(let i=-1;i<=1;i++){lift.add(mesh(new THREE.BoxGeometry(.006,.004,.5),piping,i*.17,.167,0));}
+
+const back=new THREE.Group();back.position.set(0,.14,-.27);back.rotation.x=-.2;lift.add(back);
+back.add(mesh(new RoundedBoxGeometry(.6,.78,.05,4,.02),piping,0,.42,-.03));
+back.add(mesh(new RoundedBoxGeometry(.58,.76,.13,6,.055),leather,0,.42,.03));
+for(let i=-1;i<=1;i+=2){back.add(mesh(new THREE.BoxGeometry(.006,.6,.004),piping,i*.12,.42,.097));}
+back.add(mesh(new THREE.CylinderGeometry(.016,.016,.22,16),chrome,0,.88,-.01));
+back.add(mesh(new RoundedBoxGeometry(.34,.13,.11,5,.05),leather,0,.98,.02));
+back.add(mesh(new RoundedBoxGeometry(.35,.02,.115,3,.008),piping,0,.915,.02));
+
+/* armrests */
+for(const s of [-1,1]){
+  lift.add(tube([[s*.31,.02,.24],[s*.37,.12,.26],[s*.38,.24,.12],[s*.37,.25,-.14],[s*.31,.18,-.24]],.022,chrome));
+  lift.add(mesh(new RoundedBoxGeometry(.1,.055,.5,4,.022),leather,s*.375,.285,.02));
+  lift.add(mesh(new RoundedBoxGeometry(.104,.012,.505,3,.005),piping,s*.375,.255,.02));
+}
+/* footrest */
+lift.add(tube([[-.2,-.03,.27],[-.2,-.2,.36],[-.2,-.38,.44]],.02,chrome));
+lift.add(tube([[.2,-.03,.27],[.2,-.2,.36],[.2,-.38,.44]],.02,chrome));
+const foot=mesh(new RoundedBoxGeometry(.52,.03,.2,3,.01),chrome,0,-.395,.47);lift.add(foot);
+for(let i=0;i<4;i++){lift.add(mesh(new THREE.BoxGeometry(.48,.006,.012),rubber,0,-.377,.395+i*.048));}
+
+/* floor: shadow catcher + steel glow disk */
+const floorMesh=new THREE.Mesh(new THREE.CircleGeometry(2.4,64).rotateX(-Math.PI/2),new THREE.ShadowMaterial({opacity:.55}));floorMesh.receiveShadow=true;scene.add(floorMesh);
+const gc=document.createElement('canvas');gc.width=gc.height=256;const gx=gc.getContext('2d');
+const gg=gx.createRadialGradient(128,128,0,128,128,128);gg.addColorStop(0,'rgba(70,130,180,.55)');gg.addColorStop(.5,'rgba(70,130,180,.14)');gg.addColorStop(1,'rgba(70,130,180,0)');gx.fillStyle=gg;gx.fillRect(0,0,256,256);
+const glow=new THREE.Mesh(new THREE.PlaneGeometry(2.6,2.6).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(gc),transparent:true,depthWrite:false}));glow.position.y=.002;scene.add(glow);
+
+chair.rotation.y=-.55;
+
+const controls=new OrbitControls(camera,canvas);
+controls.target.set(0,.95,0);controls.enableZoom=false;controls.enablePan=false;controls.enableDamping=true;controls.dampingFactor=.08;
+controls.minPolarAngle=1.0;controls.maxPolarAngle=1.42;controls.autoRotate=!reduce;controls.autoRotateSpeed=1.1;controls.rotateSpeed=.8;
+controls.update();
+
+/* pump: click (not drag) raises the seat in steps, 4th click drops it */
+let level=0,targetY=BASE_Y,pedalT=0;
+const lvl=document.getElementById('lvl');
+const STEP=.065,MAX=3;
+let actx;
+function hiss(dur,vol,f){
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const n=actx.createBuffer(1,actx.sampleRate*dur,actx.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+    const s=actx.createBufferSource();s.buffer=n;const bp=actx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=f;bp.Q.value=.8;
+    const g=actx.createGain();g.gain.value=vol;s.connect(bp).connect(g).connect(actx.destination);s.start();}catch(e){}
+}
+function pump(){
+  if(level<MAX){level++;hiss(.12,.05,2400);pedalT=1;}else{level=0;hiss(.45,.06,1200);}
+  targetY=BASE_Y+level*STEP;
+  lvl.textContent='▮'.repeat(level+1)+'▯'.repeat(MAX-level);
+  if(reduce){lift.position.y=targetY;render();}
+}
+let down=null;
+canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,t:performance.now()};});
+canvas.addEventListener('pointerup',e=>{if(!down)return;const m=Math.hypot(e.clientX-down.x,e.clientY-down.y),dt=performance.now()-down.t;down=null;if(m<6&&dt<450)pump();});
+canvas.tabIndex=0;canvas.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();pump();}});
+
+function size(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(()=>{size();render();}).observe(stage);size();
+
+function render(){renderer.render(scene,camera);}
+let visible=true,last=performance.now();
+new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible){last=performance.now();loop();}},{threshold:.05}).observe(stage);
+function loop(){
+  if(!visible)return;
+  requestAnimationFrame(loop);
+  const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;
+  lift.position.y+=(targetY-lift.position.y)*(level===0?6:10)*dt;
+  pedalT=Math.max(0,pedalT-dt*5);pedal.rotation.z=-pedalT*.25;
+  controls.update();render();
+}
+loop();
+addEventListener('beforeprint',()=>{render();const img=document.getElementById('chairStill');img.src=canvas.toDataURL('image/png');document.documentElement.classList.add('printing');});
+addEventListener('afterprint',()=>document.documentElement.classList.remove('printing'));
+window.__chair={chair,lift,camera,controls,pump,render,renderer};
+</script>
+</body>
+</html>
