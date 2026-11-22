@@ -274,6 +274,45 @@ p{font-size:var(--fs-body);line-height:1.5}
 .act .copy:hover{background:rgba(250,249,246,.3)}
 .act .copy:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
 
+/* ═══ PAGE 6 · STILL TO BUILD ═══════════════ */
+#p6 .head{position:absolute;left:var(--pad);top:calc(var(--u)*4.6)}
+#p6 h2{margin-top:calc(var(--u)*1.6)}
+#p6 .tally{font-family:var(--mono);font-size:var(--fs-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted-lt);margin-top:calc(var(--u)*.8)}
+#p6 .tally b{color:var(--steel-dk);font-weight:600}
+.owners{position:absolute;right:var(--pad);top:calc(var(--u)*4.9);width:41%;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:calc(var(--u)*.45)}
+.owners .k{width:100%;text-align:right;margin-bottom:calc(var(--u)*.2)}
+.owners button{font-family:var(--mono);font-size:calc(var(--u)*.66);font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:calc(var(--u)*.42) calc(var(--u)*.85);border-radius:999px;border:1px solid var(--paper-line);color:var(--muted-lt);background:var(--paper);transition:all .2s}
+.owners button:hover{border-color:var(--steel);color:var(--steel-dk)}
+.owners button[aria-pressed="true"]{background:var(--brand-ink);border-color:var(--brand-ink);color:var(--paper)}
+.owners button.tbd[aria-pressed="true"]{background:#B4462F;border-color:#B4462F}
+.owners button:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
+.prio{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*14.2);display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1)}
+.pc{background:var(--ink);color:var(--text);border-radius:calc(var(--u)*.6);padding:calc(var(--u)*1.1) calc(var(--u)*1.4);display:flex;flex-direction:column;transition:opacity .3s,transform .3s}
+.pc .k{color:var(--steel-lt)}
+.pc .ph{display:flex;justify-content:space-between;align-items:baseline;gap:calc(var(--u)*.6)}
+.pc .pt{font-size:calc(var(--u)*1.45);font-weight:800;letter-spacing:-.02em;color:var(--paper);margin-top:calc(var(--u)*.35)}
+.pc ul{list-style:none;margin-top:calc(var(--u)*.5);display:grid;gap:calc(var(--u)*.15)}
+.pc li{font-size:calc(var(--u)*.8);line-height:1.4;color:#C9CED6;padding-left:calc(var(--u)*1)}
+.pc li::before{content:"";display:inline-block;width:calc(var(--u)*.38);height:calc(var(--u)*.38);border:1.5px solid var(--steel-lt);border-radius:2px;margin-left:calc(var(--u)*-1);margin-right:calc(var(--u)*.62);vertical-align:.05em}
+.ow{font-family:var(--mono);font-size:calc(var(--u)*.6);font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--steel-dk);white-space:nowrap}
+.pc .ow{color:var(--steel-lt)}
+.ow.tbd{color:#B4462F}
+.pc .ow.tbd{color:#E58A73}
+.cols{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*24.8);display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*1.5)}
+.col{border-top:2px solid var(--steel);padding-top:calc(var(--u)*.7)}
+.col .ct{display:flex;justify-content:space-between;align-items:baseline}
+.col .ct .k{font-size:calc(var(--u)*.62)}
+.col .ct .n{font-family:var(--mono);font-size:calc(var(--u)*.62);color:var(--muted-lt)}
+.col .cn{font-size:calc(var(--u)*1.12);font-weight:800;letter-spacing:-.015em;color:var(--brand-ink);margin-top:calc(var(--u)*.3)}
+.col ul{list-style:none;margin-top:calc(var(--u)*.5)}
+.todo{padding:calc(var(--u)*.42) 0;border-bottom:1px solid var(--paper-line);transition:opacity .3s}
+.todo:last-child{border-bottom:0}
+.todo .tt{display:block;font-size:calc(var(--u)*.86);font-weight:700;line-height:1.3;color:var(--brand-ink)}
+.todo .ow{display:block;margin-top:calc(var(--u)*.15)}
+.dim{opacity:.2}
+.pc.dim{opacity:.28}
+
 /* ── phone: reflow, no fixed ratio ─────────── */
 @media screen and (max-width:760px){
   body{overflow:auto}
@@ -332,6 +371,19 @@ p{font-size:var(--fs-body);line-height:1.5}
   .act .e{font-size:12px}
   .act .copy{font-size:10px}
   .act .k{font-size:10px}
+  #p6 .head,.owners,.prio,.cols{position:relative;left:auto;right:auto;top:auto;width:auto}
+  .owners{justify-content:flex-start;margin-top:22px}
+  .owners .k{text-align:left}
+  .owners button{font-size:10px;padding:7px 11px}
+  .prio{grid-template-columns:1fr;margin-top:24px;gap:12px}
+  .pc{padding:20px}
+  .pc .pt{font-size:20px}
+  .pc li{font-size:14px}
+  .ow{font-size:10px}
+  .cols{grid-template-columns:1fr;margin-top:30px;gap:26px}
+  .col .ct .k,.col .ct .n{font-size:10px}
+  .col .cn{font-size:18px}
+  .todo .tt{font-size:15px}
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -368,6 +420,7 @@ p{font-size:var(--fs-body);line-height:1.5}
   <button type="button" data-go="2" aria-label="Page 3, the episode">03</button>
   <button type="button" data-go="3" aria-label="Page 4, built to travel">04</button>
   <button type="button" data-go="4" aria-label="Page 5, the team">05</button>
+  <button type="button" data-go="5" aria-label="Page 6, still to build">06</button>
 </nav>
 
 <main class="deck" id="deck">
@@ -400,7 +453,7 @@ p{font-size:var(--fs-body);line-height:1.5}
     <span>No filter on the conversation. No favours in the opinion.</span>
   </div>
 
-  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>01 / 05</span></div>
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>01 / 06</span></div>
 </div></section>
 
 <!-- ═══ 02 · THE SHOW ═══ -->
@@ -433,7 +486,7 @@ p{font-size:var(--fs-body);line-height:1.5}
     </div>
   </div>
 
-  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>02 / 05</span></div>
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>02 / 06</span></div>
 </div></section>
 
 <!-- ═══ 03 · THE EPISODE ═══ -->
@@ -497,7 +550,7 @@ p{font-size:var(--fs-body);line-height:1.5}
     <div><b>Episode 1 is neither</b><br>it premieres at the launch party, built once</div>
   </div>
 
-  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>03 / 05</span></div>
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>03 / 06</span></div>
 </div></section>
 
 <!-- ═══ 04 · BUILT TO TRAVEL ═══ -->
@@ -534,7 +587,7 @@ p{font-size:var(--fs-body);line-height:1.5}
     <div class="mod plat rise" style="--i:6"><span class="tag">LIVE</span><div class="k">Live</div><div class="pl">Twitch · TikTok · Kick</div><div class="ps">Simulcast from the room</div></div>
   </div>
 
-  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>04 / 05</span></div>
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>04 / 06</span></div>
 </div></section>
 
 <!-- ═══ 05 · CLOSE ═══ -->
@@ -580,7 +633,96 @@ p{font-size:var(--fs-body);line-height:1.5}
     </div>
   </div>
 
-  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b> · @JMoneycreates</span><span>05 / 05</span></div>
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b> · @JMoneycreates</span><span>05 / 06</span></div>
+</div></section>
+
+<!-- ═══ 06 · STILL TO BUILD ═══ -->
+<section class="slot"><div class="page light" id="p6">
+  <div class="head">
+    <div class="badge rise" style="--i:0"><span class="num">06</span><span class="lbl">Still to build</span></div>
+    <h2 class="rise" style="--i:1">What&#8217;s left. <span class="accent">Who&#8217;s on it.</span></h2>
+    <p class="tally rise" style="--i:2" id="tally">&nbsp;</p>
+  </div>
+
+  <div class="owners rise" style="--i:2" role="group" aria-label="Show tasks by owner">
+    <span class="k">Show by owner</span>
+    <button type="button" data-f="" aria-pressed="true">Everyone</button>
+    <button type="button" data-f="rock">Rock</button>
+    <button type="button" data-f="jerome">Jerome</button>
+    <button type="button" data-f="akeisha">Akeisha</button>
+    <button type="button" data-f="tq">TQ</button>
+    <button type="button" data-f="sheldon">Sheldon</button>
+    <button type="button" data-f="dario">Dario</button>
+    <button type="button" data-f="myles">Myles</button>
+    <button type="button" class="tbd" data-f="tbd">Needs an owner</button>
+  </div>
+
+  <div class="prio">
+    <div class="pc rise" style="--i:3" data-own="tbd">
+      <div class="ph"><span class="k">Priority 01 · Brand</span><span class="ow tbd">Needs an owner</span></div>
+      <div class="pt">Build the brand</div>
+      <ul><li>Brand book, logo and colours</li><li>Cover art for YouTube, Spotify and Apple</li><li>Show name and mission signed off in writing</li></ul>
+    </div>
+    <div class="pc rise" style="--i:3.4" data-own="akeisha jerome">
+      <div class="ph"><span class="k">Priority 02 · Guests</span><span class="ow">Akeisha · Jerome</span></div>
+      <div class="pt">The guest list</div>
+      <ul><li>Who we can get easily, starting with the chair</li><li>Musclehead first: he already said yes</li><li>A brief every guest gets 72 hours out</li></ul>
+    </div>
+    <div class="pc rise" style="--i:3.8" data-own="rock akeisha">
+      <div class="ph"><span class="k">Priority 03 · Stories</span><span class="ow">Rock · Akeisha</span></div>
+      <div class="pt">Rock&#8217;s first stories</div>
+      <ul><li>The ones he&#8217;s told fifty times in the chair</li><li>The lesson named for each one</li><li>Enough for the first four episodes</li></ul>
+    </div>
+  </div>
+
+  <div class="cols">
+      <div class="col rise" style="--i:4.0">
+        <div class="ct"><span class="k">Fri 11 – Sun 13 Dec</span><span class="n">6 open</span></div>
+        <div class="cn">Before the test session</div>
+        <ul>
+          <li class="todo" data-own="tq sheldon"><span class="tt">Gear list, desk mics checked, then buy</span><span class="ow">TQ · Sheldon</span></li>
+          <li class="todo" data-own="tbd"><span class="tt">Rock&#8217;s soundboard: model + setup</span><span class="ow tbd">Needs an owner</span></li>
+          <li class="todo" data-own="tbd"><span class="tt">Location + call time locked (Sun 13)</span><span class="ow tbd">Needs an owner</span></li>
+          <li class="todo" data-own="jerome"><span class="tt">Appearance releases: guests + crowd</span><span class="ow">Jerome</span></li>
+          <li class="todo" data-own="jerome"><span class="tt">Legal names + emails, whole team</span><span class="ow">Jerome</span></li>
+          <li class="todo" data-own="tq"><span class="tt">Drops and stings licensed</span><span class="ow">TQ</span></li>
+        </ul>
+      </div>
+      <div class="col rise" style="--i:4.5">
+        <div class="ct"><span class="k">Sat 9 Jan 2027</span><span class="n">6 open</span></div>
+        <div class="cn">Before the first shoot</div>
+        <ul>
+          <li class="todo" data-own="all"><span class="tt">Format locked: The Ten + sponsor read</span><span class="ow">Everyone</span></li>
+          <li class="todo" data-own="tbd"><span class="tt">Who calls the room on shoot day</span><span class="ow tbd">Needs an owner</span></li>
+          <li class="todo" data-own="jerome"><span class="tt">Run of show card + clip sheet</span><span class="ow">Jerome</span></li>
+          <li class="todo" data-own="tbd"><span class="tt">Lead camera confirmed</span><span class="ow tbd">Needs an owner</span></li>
+          <li class="todo" data-own="dario"><span class="tt">Edit turnaround + delivery spec</span><span class="ow">Dario</span></li>
+          <li class="todo" data-own="jerome"><span class="tt">Show email address</span><span class="ow">Jerome</span></li>
+        </ul>
+      </div>
+      <div class="col rise" style="--i:5.0">
+        <div class="ct"><span class="k">Vault + marketing push</span><span class="n">4 open</span></div>
+        <div class="cn">Jan – Mar</div>
+        <ul>
+          <li class="todo" data-own="jerome"><span class="tt">Rock&#8217;s guest one-sheet + who books him</span><span class="ow">Jerome</span></li>
+          <li class="todo" data-own="myles jerome"><span class="tt">Socials + rollout plan, with dates</span><span class="ow">Myles · Jerome</span></li>
+          <li class="todo" data-own="tbd"><span class="tt">Story Time: animator + pilot story</span><span class="ow tbd">Needs an owner</span></li>
+          <li class="todo" data-own="all"><span class="tt">Banked-episode target for launch</span><span class="ow">Everyone</span></li>
+        </ul>
+      </div>
+      <div class="col rise" style="--i:5.5">
+        <div class="ct"><span class="k">April 2027</span><span class="n">4 open</span></div>
+        <div class="cn">Before launch</div>
+        <ul>
+          <li class="todo" data-own="all"><span class="tt">Pick the weekend: Apr 3–4 or 10–11</span><span class="ow">Everyone</span></li>
+          <li class="todo" data-own="tbd"><span class="tt">Launch party plan: room, run, guests</span><span class="ow tbd">Needs an owner</span></li>
+          <li class="todo" data-own="myles jerome"><span class="tt">YouTube, Spotify + Apple set up</span><span class="ow">Myles · Jerome</span></li>
+          <li class="todo" data-own="jerome"><span class="tt">Sponsor kit: one-pager + segments</span><span class="ow">Jerome</span></li>
+        </ul>
+      </div>
+  </div>
+
+  <div class="run"><span>No Filter, No Favours · <b>Gas Noir Digital</b></span><span>06 / 06</span></div>
 </div></section>
 
 </main>
@@ -697,6 +839,26 @@ p{font-size:var(--fs-body);line-height:1.5}
   };
   new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){run();o.disconnect();}},{threshold:.4}).observe(document.getElementById('cmp'));
   addEventListener('beforeprint',()=>{document.getElementById('cnt').textContent='402';document.querySelectorAll('#cmp .fill').forEach(f=>{f.style.transition='none';f.style.width=f.dataset.w+'%';});});
+})();
+</script>
+
+<script>
+/* ── page 6: owner filter + live tally ── */
+(function(){
+  const items=[...document.querySelectorAll('#p6 [data-own]')];
+  const btns=[...document.querySelectorAll('.owners button')];
+  const total=items.length, tbd=items.filter(i=>i.dataset.own==='tbd').length;
+  const tally=document.getElementById('tally');
+  const base=total+' to do &middot; <b>'+tbd+' need an owner</b>';
+  tally.innerHTML=base;
+  btns.forEach(b=>b.addEventListener('click',()=>{
+    const f=b.dataset.f;
+    btns.forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
+    let n=0;
+    items.forEach(i=>{const own=i.dataset.own.split(' ');const hit=!f||own.includes(f)||(own.includes('all')&&f!=='tbd');i.classList.toggle('dim',!hit);if(hit)n++;});
+    tally.innerHTML=f?n+' of '+total+' &middot; <b>'+b.textContent+'</b>':base;
+  }));
+  addEventListener('beforeprint',()=>{items.forEach(i=>i.classList.remove('dim'));});
 })();
 </script>
 
