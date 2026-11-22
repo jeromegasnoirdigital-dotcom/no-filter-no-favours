@@ -139,13 +139,24 @@ p{font-size:var(--fs-body);line-height:1.5}
 /* ═══ PAGE 3 · THE EPISODE ═══════════════════ */
 #p3 .head{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*4.6);display:flex;justify-content:space-between;align-items:flex-end}
 #p3 h2{margin-top:calc(var(--u)*1.6)}
+.swwrap{position:relative}
+.seglink{position:absolute;right:0;top:calc(100% + var(--u)*.9);display:inline-flex;align-items:center;gap:calc(var(--u)*.6);white-space:nowrap;
+  font-family:var(--mono);font-size:calc(var(--u)*.74);font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--steel-lt);text-decoration:none;
+  padding:calc(var(--u)*.5) calc(var(--u)*1);border:1px solid rgba(143,182,216,.35);border-radius:999px;background:rgba(70,130,180,.08);transition:background .25s,color .25s,border-color .25s}
+.seglink i{width:calc(var(--u)*.55);height:calc(var(--u)*.55);border-radius:50%;background:var(--steel-lt);animation:segpulse 2.4s ease-in-out infinite}
+.seglink span{transition:transform .25s}
+.seglink:hover{background:var(--steel);border-color:var(--steel);color:var(--paper)}
+.seglink:hover i{background:var(--paper)}
+.seglink:hover span{transform:translateX(3px)}
+.seglink:focus-visible{outline:2px solid var(--steel-lt);outline-offset:3px}
+@keyframes segpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.7);opacity:.55}}
 .switch{position:relative;display:flex;padding:calc(var(--u)*.3);border-radius:999px;background:var(--ink-3);border:1px solid var(--line)}
 .switch button{position:relative;z-index:1;font-family:var(--mono);font-size:calc(var(--u)*.82);font-weight:600;letter-spacing:.16em;text-transform:uppercase;
   padding:calc(var(--u)*.85) calc(var(--u)*1.5);border-radius:999px;color:var(--muted);transition:color .3s}
 .switch button[aria-pressed="true"]{color:var(--paper)}
 .switch .thumb{position:absolute;top:calc(var(--u)*.3);bottom:calc(var(--u)*.3);border-radius:999px;background:var(--steel);
   box-shadow:0 0 calc(var(--u)*1.6) rgba(70,130,180,.55);transition:left .45s cubic-bezier(.3,.8,.2,1),width .45s cubic-bezier(.3,.8,.2,1)}
-#p3 .mid{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*15);display:grid;grid-template-columns:1fr 1.15fr;gap:calc(var(--u)*3)}
+#p3 .mid{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--u)*15.7);display:grid;grid-template-columns:1fr 1.15fr;gap:calc(var(--u)*3)}
 .typecard{border-left:calc(var(--u)*.25) solid var(--steel);padding-left:calc(var(--u)*1.5)}
 .typecard .nm{font-size:calc(var(--u)*2.6);font-weight:800;letter-spacing:-.03em;margin-top:calc(var(--u)*.5)}
 .typecard .dz{margin-top:calc(var(--u)*.8);color:#C9CED6;max-width:95%}
@@ -282,6 +293,8 @@ p{font-size:var(--fs-body);line-height:1.5}
   #p2 .hero{position:relative;height:230px;margin:0 -22px}
   #p2 .body{grid-template-columns:1fr;gap:28px;margin-top:8px}
   #p3 .head{flex-direction:column;align-items:flex-start;gap:22px}
+  .seglink{position:static;margin-top:14px;font-size:10.5px;padding:8px 14px;white-space:normal}
+  .seglink i{width:7px;height:7px;flex:none}
   #p3 .mid{grid-template-columns:1fr;margin-top:26px;gap:22px}
   #p3 .tl{margin-top:30px}
   .track{height:64px}
@@ -325,6 +338,7 @@ p{font-size:var(--fs-body);line-height:1.5}
   .deck{scroll-behavior:auto}
   .rise,#p1 h1 .w{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;transition:none!important}
   #p2 .hero img,#p5 .photo img{transform:none!important;transition:none!important}
+  .seglink i{animation:none}
 }
 
 /* ── print / PDF: 5 landscape pages ────────── */
@@ -437,10 +451,13 @@ p{font-size:var(--fs-body);line-height:1.5}
       <div class="badge rise" style="--i:0"><span class="num">03</span><span class="lbl">The episode</span></div>
       <h2 class="rise" style="--i:1">Two ways in. <span class="accent">One run of show.</span></h2>
     </div>
-    <div class="switch rise" style="--i:2" role="group" aria-label="Episode type">
-      <span class="thumb" id="thumb"></span>
-      <button type="button" data-type="hs" aria-pressed="true">House Stories</button>
-      <button type="button" data-type="chair" aria-pressed="false">The Chair</button>
+    <div class="swwrap rise" style="--i:2">
+      <div class="switch" role="group" aria-label="Episode type">
+        <span class="thumb" id="thumb"></span>
+        <button type="button" data-type="hs" aria-pressed="true">House Stories</button>
+        <button type="button" data-type="chair" aria-pressed="false">The Chair</button>
+      </div>
+      <a class="seglink" href="storytime.html"><i aria-hidden="true"></i>New segment: Story Time, animated<span aria-hidden="true">&rarr;</span></a>
     </div>
   </div>
 
