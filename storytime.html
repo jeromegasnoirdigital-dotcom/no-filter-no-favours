@@ -17,7 +17,9 @@ body{background:var(--ink);color:var(--text);font-family:Montserrat,sans-serif;l
 h1{font-size:clamp(36px,6vw,64px);font-weight:800;letter-spacing:-.02em;color:var(--paper);margin:12px 0 16px;line-height:1.05}
 h2{font-size:22px;font-weight:800;color:var(--paper);margin:48px 0 14px}
 p.lead{font-size:18px;color:var(--muted);max-width:640px}
-.ref{display:flex;align-items:center;gap:16px;margin-top:28px;padding:20px 22px;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--text);transition:border-color .2s}
+.refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.ref p{font-size:14px;color:var(--muted);margin-top:8px}
+.ref{display:flex;align-items:flex-start;gap:16px;padding:20px 22px;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--text);transition:border-color .2s}
 .ref:hover{border-color:var(--steel)}
 .ref .dot{width:44px;height:44px;border-radius:50%;background:var(--steel);flex:none;animation:pulse 2.4s ease-in-out infinite}
 .ref b{display:block;color:var(--paper);font-size:17px}
@@ -40,10 +42,25 @@ li::before{content:"?";font-family:"JetBrains Mono",monospace;color:var(--steel-
   <h1>Story Time, animated.</h1>
   <p class="lead">Rock tells the story in the chair. We animate it. His real audio, illustrated scene by scene, so the best stories travel as their own clips. Every story has a lesson.</p>
 
-  <a class="ref" href="https://www.instagram.com/mdmadeit_/" target="_blank" rel="noopener">
-    <div class="dot"></div>
-    <div><b>Style reference: @mdmadeit_</b><span>INSTAGRAM · THE LOOK WE'RE GOING FOR</span></div>
-  </a>
+  <h2>Style references</h2>
+  <div class="refs">
+    <a class="ref" href="https://www.instagram.com/mdmadeit_/" target="_blank" rel="noopener">
+      <div class="dot"></div>
+      <div><b>@mdmadeit_</b><span>INSTAGRAM · ACCOUNT · THE LOOK</span><p>The first reference. The look we're going for.</p></div>
+    </a>
+    <a class="ref" href="https://www.instagram.com/reel/DgDRaaDyZ3n/" target="_blank" rel="noopener">
+      <div class="dot"></div>
+      <div><b>VLM × 85 South Show</b><span>INSTAGRAM · REEL · @VIRALLENSEMEDIAVLM</span><p>A podcast bit animated start to finish, over the show's real audio. Several voices in one story. Closest match to Story Time.</p></div>
+    </a>
+    <a class="ref" href="https://www.instagram.com/reel/DYUDFT8tD_S/" target="_blank" rel="noopener">
+      <div class="dot"></div>
+      <div><b>Pass The Meerkat × Deji_vu</b><span>INSTAGRAM · REEL · @PASSTHEMEERKAT</span><p>One comedian telling one story, animated over his own voice. The House Stories version: Rock alone, telling it.</p></div>
+    </a>
+    <a class="ref" href="https://www.instagram.com/passthemeerkat/" target="_blank" rel="noopener">
+      <div class="dot"></div>
+      <div><b>@passthemeerkat</b><span>INSTAGRAM · ACCOUNT · 127K FOLLOWERS (NOV 2026)</span><p>A whole animated series and podcast built on this format. Proof the animated stories can carry their own channel.</p></div>
+    </a>
+  </div>
 
   <h2>How it works</h2>
   <div class="flow">
@@ -55,7 +72,7 @@ li::before{content:"?";font-family:"JetBrains Mono",monospace;color:var(--steel-
 
   <h2>To answer in the room</h2>
   <ul>
-    <li>Do we hire the reference artist, or use the style as a brief for someone else?</li>
+    <li>Do we hire one of the reference studios, or use their style as a brief for someone else?</li>
     <li>Short clip (30 to 60 sec), full story segment, or both?</li>
     <li>Which three stories go first? Ones Rock has told a hundred times.</li>
     <li>Real people in the stories: change names, stylize faces, get their OK?</li>
